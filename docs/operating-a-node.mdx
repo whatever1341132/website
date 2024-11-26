@@ -1,0 +1,74 @@
+---
+title: Operating a node
+description: coming soon
+---
+
+import Image from '@theme/IdealImage';
+
+This page explains how to setup and run a builder node.
+
+:::note
+
+If would like to participate as an operator, please fill out [this form](https://www.notion.so/flashbots/1356b4a0d8768094a07be796f7615b30) to register your interest.
+
+:::
+
+<hr class="clean" />
+
+## System requirements
+
+- Intel TDX-capable CPU
+- 16 cores
+- 32 GiB RAM
+- 2 TB disk storage, min 30K IOPS read/write, 1200MiB/s sequential read/write
+- 1 Gbps Internet access
+
+<hr class="clean" />
+
+## Cloud hosting
+
+Currently only Microsoft Azure is supported for hosting, since it's the only provider with an end-to-end working TEE attestations.
+We are actively working with Google, OVH and other providers, and expect to expand the list of supported cloud providers soon.
+
+### Microsoft Azure Cloud
+
+For Azure, we recommend the [Standard_EC16es_v5](https://learn.microsoft.com/en-us/azure/virtual-machines/ecesv5-ecedsv5-series#ecesv5-series) instance type.
+
+Notes the setup:
+- Azure CLI version 2.65.0 (or later)
+- Storage account: no redundancy necessary
+- Disks: 2TB storage, burst-enabled (needs to support 30K IOPS read/write, 1200MiB/s sequential read/write).
+
+<hr class="clean" />
+
+## Bare metal hosting
+
+Bare metal hosting is currently not supported because of two reasons:
+
+1. Hosting providers only run old BIOS versions
+2. Attestations are not reliable
+
+[This presentation](https://docs.google.com/presentation/d/1OfT9R9JwRvIhtiNlDzktcj3_flhIOmQ-ZoiwqGp46rs/edit#slide=id.p18) has a lot more details about the challenges of TDX attestations
+on bare-metal servers.
+
+For bare-metal hosting, we are currently working with providers including Google, OpenMetal to resolve any remaining issues with measurements, attestations and BIOS upgrades.
+
+<hr class="clean" />
+
+## Metrics and dashboards
+
+Builder nodes provide metrics in Prometheus format.
+
+Grafana dashboards:
+
+- [Orderflow Proxy](@site/static/assets/grafana-orderflow-proxy-receiver-dashboard.json)
+- [rbuilder](@site/static/assets/grafana-rbuilder-dashboard.json)
+
+Example dashboard screenshots for orderflow proxy:
+
+<Image img={require('@site/static/img/dashboards/grafana-orderflow-proxy.jpg')} />
+
+Example dashboard screenshots for rbuilder:
+
+<Image img={require('@site/static/img/dashboards/grafana-rbuilder-1.jpg')} />
+<Image img={require('@site/static/img/dashboards/grafana-rbuilder-2.jpg')} />
