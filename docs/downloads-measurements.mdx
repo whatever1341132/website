@@ -1,6 +1,6 @@
 ---
 title: Downloads & measurements
-description: coming soon
+description: Downloads and allowed TEE measurements for BuilderNet nodes.
 ---
 
 <hr class="clean" />
@@ -28,28 +28,6 @@ Allowed TEE measurements are published at **[measurements.builder.flashbots.net]
 
 These measurements are currently allowed for BuilderNet nodes.
 
-### `measurement-test-1`
-
-- Notes: Used for debugging.
-- Provider: Azure-TDX
-- Measurements:
-
-```json
-{
-    "4": {
-        "expected": "98ba2c602b62e67b8e0bd6c6676f12ade320a763e5e4564f62fd875a502dd651"
-    },
-    "9": {
-        "expected": "e77938394412d83a8d4de52cdaf97df82a4d4059e1e7c4fc3c73581816cea496"
-    },
-    "11": {
-        "expected": "0000000000000000000000000000000000000000000000000000000000000000"
-    },
-}
-```
-
----
-
 ### `tdx-multioperator-builder-01`
 
 - Notes: Initial BuilderNet builder node
@@ -67,5 +45,27 @@ These measurements are currently allowed for BuilderNet nodes.
     "11": {
         "expected": "4b4a408f581b8bfff628440e6899f852bf00c7e3252d550c46df649364161f98"
     }
+}
+```
+
+---
+
+### `measurement-test-1`
+
+- Notes: Used for debugging.
+- Provider: Azure-TDX
+- Measurements:
+
+```json
+{
+    "4": {
+        "expected": "98ba2c602b62e67b8e0bd6c6676f12ade320a763e5e4564f62fd875a502dd651"
+    },
+    "9": {
+        "expected": "e77938394412d83a8d4de52cdaf97df82a4d4059e1e7c4fc3c73581816cea496"
+    },
+    "11": {
+        "expected": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
 }
 ```
