@@ -48,7 +48,7 @@ BuilderNet is a new way for many parties to collaborate in building blocks. It c
 
 To advance these goals, the first release of BuilderNet introduces a “multioperator” system where many parties can operate the same block builder for the first time. Each operator runs an instance of an [open source builder](https://github.com/flashbots/rbuilder) in a Trusted Execution Environment (TEE), which orderflow providers (like apps, wallets, users, and searchers) can verify and send encrypted orderflow to. Each instance shares the orderflow it receives with other instances in the network and submits blocks to MEV-Boost relays as usual. After a BuilderNet instance wins a block, refunds are calculated and distributed back to orderflow providers based on the value they added to the block.
 
-**A full description and technical documentation is [here](https://buildernet.github.io/docs).** The first release of BuilderNet is operated by Flashbots, Beaverbuild, and Nethermind.
+**A full description and technical documentation is [here](https://buildernet.org/docs).** The first release of BuilderNet is operated by Flashbots, Beaverbuild, and Nethermind.
 
 ![Multioperator release](/img/multioperator-release.jpg)
 
@@ -120,4 +120,4 @@ This is an ambitious roadmap. We believe it is theoretically possible, practical
 
 Learn more about BuilderNet and participate [here](https://buildernet.org/docs/). You can also reach out on Telegram (@sketsdever).
 
-*Thank you to Vitalik, Viktor Bunin, Jon Charbonneau, and Barnabe Monnot for their feedback on this post.*
+*Thank you to Vitalik, Viktor Bunin, Jon Charbonneau, and Barnabé Monnot for their feedback on this post.*

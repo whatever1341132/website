@@ -13,11 +13,11 @@ Ports open for connections from outside the TDX instance.
 
 **Must be public**
 
-| Port  | Protocol    | Service                                                                          | Use                                                 |
-| ----- | ----------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
-| 5544  | TCP (HTTPS) | [orderflow-proxy](https://www.notion.so/1066b4a0d876808e9aebca8b8ee2b99f?pvs=21) | Receive orderflow from builder nodes and Flashbots. |
-| 9000  | TCP/UDP     | [Lighthouse](https://lighthouse-book.sigmaprime.io/advanced_networking.html)     | Consensus network peering.                          |
-| 30303 | TCP         | [Reth](https://reth.rs/run/ports.html)                                           | Execution network peering.                          |
+| Port  | Protocol    | Service                                                                      | Use                                                 |
+| ----- | ----------- | ---------------------------------------------------------------------------- | --------------------------------------------------- |
+| 5544  | TCP (HTTPS) | [orderflow-proxy](https://github.com/flashbots/tdx-orderflow-proxy)          | Receive orderflow from builder nodes and Flashbots. |
+| 9000  | TCP/UDP     | [Lighthouse](https://lighthouse-book.sigmaprime.io/advanced_networking.html) | Consensus network peering.                          |
+| 30303 | TCP         | [Reth](https://reth.rs/run/ports.html)                                       | Execution network peering.                          |
 
 **Selective access**
 

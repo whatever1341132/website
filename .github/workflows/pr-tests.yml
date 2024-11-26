@@ -43,9 +43,10 @@ jobs:
 
       #     echo "Checking for broken links..."
       #     muffet --version
-      #     muffet http://localhost:3000/docs/ \
-      #       --ignore-fragments \
-      #       --skip-tls-verification \
-      #       --buffer-size=16384 \
-      #       -e "algolia[.]net" \
-      #       -e "arxiv[.]org" \
+      # muffet http://localhost:3000/docs/ \
+      #   --ignore-fragments \
+      #   --skip-tls-verification \
+      #   --buffer-size=16384 \
+      #   -e "algolia[.]net" \
+      #   -e "https://buildernet-01-euw" \
+      #   -e "https://github.com/BuilderNet/website"

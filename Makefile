@@ -17,6 +17,6 @@ docker-build:
 	docker run -p 3000:3000 --name builderhub-docs --rm -it -w /mnt -v $(CUR_DIR):/mnt node:20 /usr/local/bin/npm run build
 
 docker-serve:
-	docker run -p 3000:3000 --name builderhub-docs --rm -it -w /mnt -v $(CUR_DIR):/mnt node:20 /usr/local/bin/npm yarn serve
+	docker run -p 3000:3000 --name builderhub-docs --rm -it -w /mnt -v $(CUR_DIR):/mnt node:20 /usr/local/bin/yarn serve
 
 docker-build-serve: docker-build docker-serve
