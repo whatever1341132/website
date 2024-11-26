@@ -73,7 +73,7 @@ module.exports = async function createConfigAsync() {
             },
           ],
         },
-        image: 'img/buildernet-cover-photo.jpg',
+        image: 'img/buildernet-cover-photo-m.jpg',
       }),
     presets: [
       [

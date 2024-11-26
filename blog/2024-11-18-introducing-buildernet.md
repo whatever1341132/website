@@ -1,14 +1,14 @@
 ---
 title: Introducing BuilderNet
 description: BuilderNet is a decentralized block building network for Ethereum that runs on TEEs and shares MEV with the community.
-image: /img/buildernet-cover-photo.jpg
+image: /img/buildernet-cover-photo-m.jpg
 hide_table_of_contents: false
 slug: introducing-buildernet
 ---
 
 Introducing BuilderNet — A decentralized block building network for Ethereum that runs on TEEs and shares MEV with the community.
 
-![Cover image](/img/buildernet-cover-photo.jpg)
+![Cover image](/img/buildernet-cover-photo-m.jpg)
 
 <!-- truncate -->
 
