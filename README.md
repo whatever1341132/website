@@ -15,8 +15,8 @@ Now you can open the website on http://localhost:3000
 See also the [`Makefile`](./Makefile) for more commands.
 
 Note: you should really use Docker for these kinds of things, because `yarn` will install _a ton_ of dependencies that all have full access to your system and can run arbitrary
-code on your machine during and after installation. Docker provides at least a somewhat isolated environment for this. If you prefer to live dangerous, probably
-just running `make start` is what you want.
+code on your machine during and after installation. Docker provides at least a somewhat isolated environment for this. But if you really want to live dangerously, you can also
+run `npm install` and `npm start`.
 
 ---
 
