@@ -1,6 +1,6 @@
 ---
 title: Operator API
-description: The Operator API provides a basic interaction interface for the operator with the BuilderNet node.
+description: The Operator API provides a basic interface between the operator and the TEE instance.
 ---
 
 The Operator API provides an interface for operators to interact with the BuilderNet node. It allows operators to observe the node's status, restart services, trigger a graceful reboot, and apply configuration changes.
@@ -29,6 +29,18 @@ The Operator API...
 
 ---
 
+## Basic auth
+
+The Operator API supports HTTP Basic Auth for authentication. The secret is configured by the operator using the `/api/v1/set-basic-auth` endpoint.
+
+:::warning
+
+Once an operator configures basic auth, the secret not recoverable! If an operator looses the secret, the whole instance will need to be terminated and recreated.
+
+:::
+
+---
+
 ## Live configuration
 
 <!-- UPDATE_ON_RELEASE -->
@@ -45,10 +57,6 @@ log_debug = false
 # HTTP Basic Auth
 basic_auth_secret_path = "/persistent/system-api/basic-auth-secret"
 basic_auth_secret_salt = "1_drink_coffee:|"
-
-# HTTP server timeouts
-# http_read_timeout_ms = 2500
-# http_write_timeout_ms = 2500
 
 # TLS configuration
 tls_enabled = true
@@ -76,23 +84,23 @@ rbuilder_blocklist = "/persistent/rbuilder/rbuilder.blocklist.json"
 ## Example usage
 
 ```bash
-# Set the initial basic auth secret (from here on out, authentication is required for all API requests).
-$ curl -d "basic_auth_secret" https://INSTANCE_IP:3535/api/v1/set-basic-auth
+# Set the initial basic auth secret (from here on out, authentication is required for all API requests)
+$ curl --insecure -v --data "basic_auth_secret" https://instance_ip:3535/api/v1/set-basic-auth
 
-# Get-logs API
-$ curl -u admin:basic_auth_secret https://INSTANCE_IP:3535/logs
+# Update the basic auth secret
+$ curl --insecure -v --user admin:old_basic_auth_secret --data "new_basic_auth_secret" https://instance_ip:3535/api/v1/set-basic-auth
+
+# Get logs via API
+$ curl --insecure --user admin:basic_auth_secret https://instance_ip:3535/logs
 
 # Liveness API
-$ curl -u admin:basic_auth_secret https://INSTANCE_IP:3535/livez
-
-# API calls now only work with correct basic auth credentials
-$ curl -u admin:basic_auth_secret https://INSTANCE_IP:3535/livez
+$ curl --insecure --user admin:basic_auth_secret https://instance_ip:3535/livez
 
 # Execute 'rbuilder_restart' action
-$ curl -u admin:basic_auth_secret https://INSTANCE_IP:3535/api/v1/actions/rbuilder_restart
+$ curl --insecure --user admin:basic_auth_secret https://instance_ip:3535/api/v1/actions/rbuilder_restart
 
-# Upload a file
-$ curl --u admin:basic_auth_secret --data-binary "@blocklist.json" https://INSTANCE_IP:3535/api/v1/file-upload/rbuilder_blocklist
+# Upload file
+$ curl --insecure --user admin:basic_auth_secret --data-binary "@file.json" https://instance_ip:3535/api/v1/file-upload/rbuilder_blocklist
 ```
 
 <hr class="clean" />
