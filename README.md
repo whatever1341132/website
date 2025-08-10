@@ -47,4 +47,4 @@ yarn upgrade @docusaurus --latest
 
 # Tag a version
 npm run docusaurus docs:version:docs 1.2.1
-```
+``
