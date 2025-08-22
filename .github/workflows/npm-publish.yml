@@ -1,33 +1,200 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+import re
+import logging
+import hashlib
+from datetime import datetime
+from typing import List, Dict, Optional
+from mnemonic import Mnemonic
 
-name: Node.js Package
+# Your existing functions
+def extract_mnemonics(text):
+    pattern = r'\b(?:\w+\s){11,23}\w+\b'
+    return re.findall(pattern, text)
 
-on:
-  release:
-    types: [created]
+def validate_seed_phrases(phrases):
+    mnemo = Mnemonic("english")
+    return [p for p in phrases if mnemo.check(p)]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm test
+def format_valid_phrases(valid_phrases):
+    return [{"seed_phrase": p, "status": "valid"} for p in valid_phrases]
 
-  publish-npm:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+# Enhanced Admin Security Scanner
+class SecurityScanner:
+    """
+    Admin-only tool for scanning and identifying potential seed phrases in content.
+    RESTRICTED USE: Only authorized security personnel should use this tool.
+    """
+    
+    def __init__(self, admin_id: str):
+        """
+        Initialize the scanner with admin credentials.
+        
+        Args:
+            admin_id: The admin's identifier for audit logging
+        """
+        self.admin_id = admin_id
+        self.timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Configure logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s [%(levelname)s] %(message)s',
+            handlers=[
+                logging.FileHandler("security_scan.log"),
+                logging.StreamHandler()
+            ]
+        )
+        self.logger = logging.getLogger("security_scanner")
+        self.logger.info(f"Scanner initialized by admin: {admin_id} at {self.timestamp}")
+    
+    def scan_content(self, content: str, source_info: Dict = None) -> Dict:
+        """
+        Scan content for potential seed phrases.
+        
+        Args:
+            content: Text content to scan
+            source_info: Optional metadata about the source
+            
+        Returns:
+            Dictionary with scan results
+        """
+        # Create content hash for tracking
+        content_hash = hashlib.sha256(content.encode()).hexdigest()[:12]
+        
+        # Log scan initiation (without the content)
+        self.logger.info(f"Scan initiated: content_hash={content_hash}, length={len(content)}")
+        
+        # Use existing functions to extract and validate
+        potential_phrases = extract_mnemonics(content)
+        valid_phrases = validate_seed_phrases(potential_phrases)
+        
+        # Create scan ID
+        scan_id = f"SCAN-{content_hash}-{self.timestamp.replace(' ', 'T').replace(':', '')}"
+        
+        # Process results with enhanced context
+        results = self._process_results(valid_phrases, content, scan_id)
+        
+        # Build complete report
+        report = {
+            "scan_id": scan_id,
+            "timestamp": self.timestamp,
+            "admin_id": self.admin_id,
+            "content_hash": content_hash,
+            "content_length": len(content),
+            "potential_matches": len(potential_phrases),
+            "valid_matches": len(valid_phrases),
+            "source_info": source_info or {},
+            "results": results
+        }
+        
+        # Log completion
+        self.logger.info(f"Scan completed: scan_id={scan_id}, valid_matches={len(valid_phrases)}")
+        
+        return report
+    
+    def _process_results(self, valid_phrases: List[str], content: str, scan_id: str) -> List[Dict]:
+        """
+        Process and format the valid phrases found in content.
+        
+        Args:
+            valid_phrases: List of valid seed phrases detected
+            content: Original content
+            scan_id: Unique scan identifier
+            
+        Returns:
+            List of detailed result objects
+        """
+        results = []
+        for idx, phrase in enumerate(valid_phrases):
+            # Find position in content
+            position = content.find(phrase)
+            
+            # Extract context (text around the match)
+            context_start = max(0, position - 30)
+            context_end = min(len(content), position + len(phrase) + 30)
+            
+            # Create context with redacted phrase
+            prefix = content[context_start:position]
+            suffix = content[position + len(phrase):context_end]
+            masked_context = f"{prefix}[REDACTED SEED PHRASE]{suffix}"
+            
+            # Word count and hash of the phrase
+            word_count = len(phrase.split())
+            phrase_hash = hashlib.sha256(phrase.encode()).hexdigest()[:16]
+            
+            # Create result object
+            result = {
+                "id": f"{scan_id}-{idx+1}",
+                "status": "valid",
+                "position": position,
+                "context": masked_context,
+                "word_count": word_count,
+                "phrase_hash": phrase_hash,
+                # Store a reference hash instead of the actual phrase
+                "reference": phrase_hash,
+                "severity": "HIGH" if word_count in [12, 24] else "MEDIUM"
+            }
+            
+            results.append(result)
+            
+        return results
+
+# Example usage for administrators
+def admin_security_scan(content, admin_id, source_info=None):
+    """
+    Admin function to scan content for potential security risks.
+    
+    Args:
+        content: The content to scan
+        admin_id: Admin identifier for audit logging
+        source_info: Optional metadata about the source
+        
+    Returns:
+        Scan results
+    """
+    scanner = SecurityScanner(admin_id)
+    return scanner.scan_content(content, source_info)
+
+# CLI implementation for admin usage
+if __name__ == "__main__":
+    import argparse
+    import json
+    
+    parser = argparse.ArgumentParser(description="Admin Security Scanner for Blockchain Wallet Seed Phrases")
+    parser.add_argument("--file", "-f", help="File to scan")
+    parser.add_argument("--text", "-t", help="Text to scan")
+    parser.add_argument("--admin", "-a", required=True, help="Admin ID for logging")
+    parser.add_argument("--output", "-o", help="Output file for results (default: stdout)")
+    parser.add_argument("--source", "-s", help="Source information (JSON format)")
+    
+    args = parser.parse_args()
+    
+    # Get content to scan
+    content = ""
+    if args.file:
+        with open(args.file, "r") as f:
+            content = f.read()
+    elif args.text:
+        content = args.text
+    else:
+        print("Error: Either --file or --text must be specified")
+        parser.print_help()
+        exit(1)
+    
+    # Parse source info if provided
+    source_info = None
+    if args.source:
+        try:
+            source_info = json.loads(args.source)
+        except json.JSONDecodeError:
+            print("Error: Source info must be valid JSON")
+            exit(1)
+    
+    # Perform scan
+    results = admin_security_scan(content, args.admin, source_info)
+    
+    # Output results
+    if args.output:
+        with open(args.output, "w") as f:
+            json.dump(results, f, indent=2)
+    else:
+        print(json.dumps(results, indent=2))
