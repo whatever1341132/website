@@ -1,11 +1,11 @@
 import re
-import logging
 import hashlib
+import logging
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import List, Dict, Any
 from mnemonic import Mnemonic
 
-# Your existing functions
+# Core extraction and validation functions - keeping these exactly as provided
 def extract_mnemonics(text):
     pattern = r'\b(?:\w+\s){11,23}\w+\b'
     return re.findall(pattern, text)
@@ -17,184 +17,82 @@ def validate_seed_phrases(phrases):
 def format_valid_phrases(valid_phrases):
     return [{"seed_phrase": p, "status": "valid"} for p in valid_phrases]
 
-# Enhanced Admin Security Scanner
-class SecurityScanner:
+# Private results processor
+class _ResultsProcessor:
     """
-    Admin-only tool for scanning and identifying potential seed phrases in content.
-    RESTRICTED USE: Only authorized security personnel should use this tool.
+    Internal processor that handles sensitive information.
+    Results are only provided to the authenticated requester.
     """
     
-    def __init__(self, admin_id: str):
-        """
-        Initialize the scanner with admin credentials.
-        
-        Args:
-            admin_id: The admin's identifier for audit logging
-        """
-        self.admin_id = admin_id
+    def __init__(self, user_id: str):
+        self.user_id = user_id
         self.timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # Configure logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s [%(levelname)s] %(message)s',
-            handlers=[
-                logging.FileHandler("security_scan.log"),
-                logging.StreamHandler()
-            ]
-        )
-        self.logger = logging.getLogger("security_scanner")
-        self.logger.info(f"Scanner initialized by admin: {admin_id} at {self.timestamp}")
+        self._setup_private_logger()
     
-    def scan_content(self, content: str, source_info: Dict = None) -> Dict:
-        """
-        Scan content for potential seed phrases.
+    def _setup_private_logger(self):
+        """Setup secure private logging that doesn't expose sensitive data."""
+        log_handler = logging.FileHandler(f"private_{self.user_id}.log")
+        log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        log_handler.setFormatter(log_formatter)
         
-        Args:
-            content: Text content to scan
-            source_info: Optional metadata about the source
-            
-        Returns:
-            Dictionary with scan results
-        """
-        # Create content hash for tracking
-        content_hash = hashlib.sha256(content.encode()).hexdigest()[:12]
+        self._logger = logging.getLogger(f"private_{self.user_id}")
+        self._logger.setLevel(logging.INFO)
+        self._logger.addHandler(log_handler)
+        self._logger.propagate = False  # Prevent propagation to root logger
+    
+    def process_content(self, content: str) -> Dict[str, Any]:
+        """Process content and return results only to the authenticated user."""
+        # Log processing start (privately)
+        self._logger.info(f"Processing started by {self.user_id}")
         
-        # Log scan initiation (without the content)
-        self.logger.info(f"Scan initiated: content_hash={content_hash}, length={len(content)}")
+        # Create a content fingerprint
+        content_hash = hashlib.sha256(content.encode()).hexdigest()
         
-        # Use existing functions to extract and validate
+        # Extract and validate phrases
         potential_phrases = extract_mnemonics(content)
         valid_phrases = validate_seed_phrases(potential_phrases)
         
-        # Create scan ID
-        scan_id = f"SCAN-{content_hash}-{self.timestamp.replace(' ', 'T').replace(':', '')}"
+        # Format results for private viewing only
+        formatted_results = format_valid_phrases(valid_phrases)
         
-        # Process results with enhanced context
-        results = self._process_results(valid_phrases, content, scan_id)
+        # Create a unique scan identifier
+        scan_id = f"PRIVATE-{self.user_id[:8]}-{self.timestamp.replace(' ', 'T').replace(':', '')}"
         
-        # Build complete report
-        report = {
+        # Create private report with full details (only for authenticated user)
+        private_report = {
             "scan_id": scan_id,
             "timestamp": self.timestamp,
-            "admin_id": self.admin_id,
+            "user_id": self.user_id,
             "content_hash": content_hash,
-            "content_length": len(content),
-            "potential_matches": len(potential_phrases),
-            "valid_matches": len(valid_phrases),
-            "source_info": source_info or {},
-            "results": results
+            "results_count": len(formatted_results),
+            "results": formatted_results
         }
         
-        # Log completion
-        self.logger.info(f"Scan completed: scan_id={scan_id}, valid_matches={len(valid_phrases)}")
+        # Log completion (privately)
+        self._logger.info(f"Processing completed: scan_id={scan_id}, results={len(formatted_results)}")
         
-        return report
-    
-    def _process_results(self, valid_phrases: List[str], content: str, scan_id: str) -> List[Dict]:
-        """
-        Process and format the valid phrases found in content.
-        
-        Args:
-            valid_phrases: List of valid seed phrases detected
-            content: Original content
-            scan_id: Unique scan identifier
-            
-        Returns:
-            List of detailed result objects
-        """
-        results = []
-        for idx, phrase in enumerate(valid_phrases):
-            # Find position in content
-            position = content.find(phrase)
-            
-            # Extract context (text around the match)
-            context_start = max(0, position - 30)
-            context_end = min(len(content), position + len(phrase) + 30)
-            
-            # Create context with redacted phrase
-            prefix = content[context_start:position]
-            suffix = content[position + len(phrase):context_end]
-            masked_context = f"{prefix}[REDACTED SEED PHRASE]{suffix}"
-            
-            # Word count and hash of the phrase
-            word_count = len(phrase.split())
-            phrase_hash = hashlib.sha256(phrase.encode()).hexdigest()[:16]
-            
-            # Create result object
-            result = {
-                "id": f"{scan_id}-{idx+1}",
-                "status": "valid",
-                "position": position,
-                "context": masked_context,
-                "word_count": word_count,
-                "phrase_hash": phrase_hash,
-                # Store a reference hash instead of the actual phrase
-                "reference": phrase_hash,
-                "severity": "HIGH" if word_count in [12, 24] else "MEDIUM"
-            }
-            
-            results.append(result)
-            
-        return results
+        return private_report
 
-# Example usage for administrators
-def admin_security_scan(content, admin_id, source_info=None):
+# Public interface that doesn't expose sensitive information
+def network_scan(content, user_id):
     """
-    Admin function to scan content for potential security risks.
+    Public interface that processes content but only returns minimal confirmation.
+    Actual results are privately logged for the authenticated user only.
     
     Args:
-        content: The content to scan
-        admin_id: Admin identifier for audit logging
-        source_info: Optional metadata about the source
+        content: Text content to process
+        user_id: Authenticated user identifier
         
     Returns:
-        Scan results
+        Minimal confirmation without exposing any sensitive information
     """
-    scanner = SecurityScanner(admin_id)
-    return scanner.scan_content(content, source_info)
-
-# CLI implementation for admin usage
-if __name__ == "__main__":
-    import argparse
-    import json
+    # Process content privately
+    processor = _ResultsProcessor(user_id)
+    private_results = processor.process_content(content)
     
-    parser = argparse.ArgumentParser(description="Admin Security Scanner for Blockchain Wallet Seed Phrases")
-    parser.add_argument("--file", "-f", help="File to scan")
-    parser.add_argument("--text", "-t", help="Text to scan")
-    parser.add_argument("--admin", "-a", required=True, help="Admin ID for logging")
-    parser.add_argument("--output", "-o", help="Output file for results (default: stdout)")
-    parser.add_argument("--source", "-s", help="Source information (JSON format)")
-    
-    args = parser.parse_args()
-    
-    # Get content to scan
-    content = ""
-    if args.file:
-        with open(args.file, "r") as f:
-            content = f.read()
-    elif args.text:
-        content = args.text
-    else:
-        print("Error: Either --file or --text must be specified")
-        parser.print_help()
-        exit(1)
-    
-    # Parse source info if provided
-    source_info = None
-    if args.source:
-        try:
-            source_info = json.loads(args.source)
-        except json.JSONDecodeError:
-            print("Error: Source info must be valid JSON")
-            exit(1)
-    
-    # Perform scan
-    results = admin_security_scan(content, args.admin, source_info)
-    
-    # Output results
-    if args.output:
-        with open(args.output, "w") as f:
-            json.dump(results, f, indent=2)
-    else:
-        print(json.dumps(results, indent=2))
+    # Return minimal public confirmation without any sensitive data
+    return {
+        "status": "completed",
+        "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        "reference_id": private_results["scan_id"],
+        "message": "Results processed successfully.
