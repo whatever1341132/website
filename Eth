@@ -1,1 +1,42 @@
-0xf57d191c446d57a7250414c6d6c4d94a19b4384134a7f8a65c2dca4c8c42a5ae 
+// Install: npm install ethers
+const { ethers } = require("ethers");
+
+// Configuration (replace with your values)
+const PRIVATE_KEY = "0xYOUR_PRIVATE_KEY_HERE"; // ← NEVER commit this
+const PROVIDER_URL = "https://eth.llamarpc.com"; // or Infura/Alchemy
+const SENDER_ADDRESS = "0x1A9D699aeE3a56ca49d0CC3b542aE3A37885A3e1";
+const LINK_CONTRACT = "0x514910771af9ca656af840dff83e8264ecf986ca";
+const NEW_RECIPIENT = "0xYOUR_NEW_RECIPIENT_ADDRESS_HERE"; // ← Change here
+const AMOUNT = ethers.parseUnits("1000", 18); // 1,000 LINK (adjust decimals)
+const NONCE = 16985; // ← Use exact pending nonce you want to replace (or next free nonce)
+const GAS_PRICE_GWEI = "1.5"; // ← Bump higher than original (live check current base fee)
+
+// ABI fragment (transfer only)
+const LINK_ABI = [
+  "function transfer(address to, uint256 value) external returns (bool)"
+];
+
+async function replaceOrSendLINK() {
+  const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
+  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+
+  const linkContract = new ethers.Contract(LINK_CONTRACT, LINK_ABI, wallet);
+
+  // Build replacement tx (Type 2 – EIP-1559)
+  const tx = await linkContract.transfer.populateTransaction(NEW_RECIPIENT, AMOUNT);
+  
+  const signedTx = await wallet.sendTransaction({
+    ...tx,
+    nonce: NONCE,
+    gasLimit: 80_000, // Safe for LINK transfer
+    maxFeePerGas: ethers.parseUnits(GAS_PRICE_GWEI, "gwei"),
+    maxPriorityFeePerGas: ethers.parseUnits("0.5", "gwei"),
+    type: 2
+  });
+
+  console.log(`Replacement/Link transfer broadcast: ${signedTx.hash}`);
+  await signedTx.wait();
+  console.log("Confirmed!");
+}
+
+replaceOrSendLINK().catch(console.error); 
