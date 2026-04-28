@@ -1,42 +1,72 @@
-// Install: npm install ethers
+require("dotenv").config();
 const { ethers } = require("ethers");
 
-// Configuration (replace with your values)
-const PRIVATE_KEY = "0xYOUR_PRIVATE_KEY_HERE"; // ← NEVER commit this
-const PROVIDER_URL = "https://eth.llamarpc.com"; // or Infura/Alchemy
-const SENDER_ADDRESS = "";
-const LINK_CONTRACT = "0x514910771af9ca656af840dff83e8264ecf986ca0x514910771AF9Ca656af840dff83E8264EcF986CA";
-const NEW_RECIPIENT = "0x5c201b0197f34106faeD00ca60Ca030DFB1C9050" // 
-const AMOUNT = ethers.parseUnits("1000", 18); // 1,000 LINK (adjust decimals)
-const NONCE = 16985; // ← Use exact pending nonce you want to replace (or next free nonce)
-const GAS_PRICE_GWEI = "1.5"; // ← Bump higher than original (live check current base fee)
+(async () => {
+  // ===== INLINE CONFIG =====
+  const PROVIDER = new ethers.JsonRpcProvider("https://eth.llamarpc.com");
 
-// ABI fragment (transfer only)
-const LINK_ABI = [
-  "function transfer(address to, uint256 value) external returns (bool)"
-];
+  const PRIVATE_KEY = process.env.PRIVATE_KEY;
+  if (!PRIVATE_KEY) throw new Error("Missing PRIVATE_KEY");
 
-async function replaceOrSendLINK() {
-  const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
-  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+  const WALLET = new ethers.Wallet(PRIVATE_KEY, PROVIDER);
 
-  const linkContract = new ethers.Contract(LINK_CONTRACT, LINK_ABI, wallet);
+  const LINK = "0x514910771AF9Ca656af840dff83E8264EcF986CA";
+  const RECIPIENT = "0x5c201b984386b2bdd3e5fc1a5fac2aa517f40dbf";
 
-  // Build replacement tx (Type 2 – EIP-1559)
-  const tx = await linkContract.transfer.populateTransaction(NEW_RECIPIENT, AMOUNT);
-  
-  const signedTx = await wallet.sendTransaction({
+  const AMOUNT = ethers.parseUnits("1000", 18);
+
+  const ABI = [
+    "function transfer(address to, uint256 value) returns (bool)"
+  ];
+
+  let running = false;
+  if (running) throw new Error("Duplicate execution blocked");
+  running = true;
+
+  console.log("Sender:", WALLET.address);
+
+  // ===== ETH CHECK =====
+  const ethBal = await PROVIDER.getBalance(WALLET.address);
+  if (ethBal === 0n) throw new Error("No ETH for gas");
+
+  const contract = new ethers.Contract(LINK, ABI, WALLET);
+
+  // ===== SIMULATION =====
+  try {
+    await contract.transfer.staticCall(RECIPIENT, AMOUNT);
+    console.log("Simulation OK");
+  } catch (e) {
+    throw new Error("Simulation failed: " + (e.reason || e.message));
+  }
+
+  // ===== GAS =====
+  const gas = await contract.transfer.estimateGas(RECIPIENT, AMOUNT);
+  const gasLimit = (gas * 120n) / 100n;
+
+  // ===== FEES =====
+  const fee = await PROVIDER.getFeeData();
+
+  // ===== NONCE =====
+  const nonce = await PROVIDER.getTransactionCount(WALLET.address, "pending");
+
+  // ===== SEND =====
+  const tx = await contract.transfer.populateTransaction(
+    RECIPIENT,
+    AMOUNT
+  );
+
+  const sent = await WALLET.sendTransaction({
     ...tx,
-    nonce: NONCE,
-    gasLimit: 80_000, // Safe for LINK transfer
-    maxFeePerGas: ethers.parseUnits(GAS_PRICE_GWEI, "gwei"),
-    maxPriorityFeePerGas: ethers.parseUnits("0.5", "gwei"),
+    nonce,
+    gasLimit,
+    maxFeePerGas: fee.maxFeePerGas,
+    maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
     type: 2
   });
 
-  console.log(`Replacement/Link transfer broadcast: ${signedTx.hash}`);
-  await signedTx.wait();
-  console.log("Confirmed!");
-}
+  console.log("TX HASH:", sent.hash);
 
-replaceOrSendLINK().catch(console.error); 
+  const receipt = await sent.wait();
+
+  console.log("CONFIRMED BLOCK:", receipt.blockNumber);
+})();
