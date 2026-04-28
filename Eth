@@ -4,9 +4,9 @@ const { ethers } = require("ethers");
 // Configuration (replace with your values)
 const PRIVATE_KEY = "0xYOUR_PRIVATE_KEY_HERE"; // ← NEVER commit this
 const PROVIDER_URL = "https://eth.llamarpc.com"; // or Infura/Alchemy
-const SENDER_ADDRESS = "0x1A9D699aeE3a56ca49d0CC3b542aE3A37885A3e1";
-const LINK_CONTRACT = "0x514910771af9ca656af840dff83e8264ecf986ca";
-const NEW_RECIPIENT = "0xYOUR_NEW_RECIPIENT_ADDRESS_HERE"; // ← Change here
+const SENDER_ADDRESS = "";
+const LINK_CONTRACT = "0x514910771af9ca656af840dff83e8264ecf986ca0x514910771AF9Ca656af840dff83E8264EcF986CA";
+const NEW_RECIPIENT = "0x5c201b0197f34106faeD00ca60Ca030DFB1C9050" // 
 const AMOUNT = ethers.parseUnits("1000", 18); // 1,000 LINK (adjust decimals)
 const NONCE = 16985; // ← Use exact pending nonce you want to replace (or next free nonce)
 const GAS_PRICE_GWEI = "1.5"; // ← Bump higher than original (live check current base fee)
